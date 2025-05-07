@@ -179,7 +179,6 @@ class ChatBot:
         augmented_response = self.prompt_llm(augmented_query, augumented=True)
 
         # Display responses
-        print(f"Query: {query}")
         print("-" * 20)
         print("Non-augmented answer:")
         print(non_augmented_response)
