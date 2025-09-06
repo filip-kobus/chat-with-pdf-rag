@@ -7,11 +7,10 @@ from dotenv import load_dotenv
 import pymupdf4llm
 from langchain.text_splitter import MarkdownTextSplitter
 
-from langchain_pinecone import PineconeVectorStore
+from langchain_chroma import Chroma
 from openai import OpenAI 
 from langchain_openai import OpenAIEmbeddings
 import openai
-from pinecone import ServerlessSpec, CloudProvider, AwsRegion, Metric, Pinecone
 
 import pathlib
 import random
@@ -38,40 +37,13 @@ NO_NEEDED_PAGES = {
 ### Config
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-INDEX_NAME = os.getenv("INDEX_NAME")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
-LLM_MODEL = os.getenv("LLM_MODEL")
-TEXT_FIELD = "text"
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "chroma_db")
 
 ### Chunking parameters
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 80
-
-class Database:
-    """A class to manage Pinecone database operations."""
-
-    def __init__(self, api_key: str, index_name: str):
-        self.api_key = api_key
-        self.index_name = index_name
-        self.pinecone = Pinecone(api_key=self.api_key)
-        self.index = self._initialize_index()
-
-    def _initialize_index(self):
-        if not self.pinecone.has_index(self.index_name):
-            self.pinecone.create_index(
-                name=self.index_name,
-                dimension=1536,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            )
-        return self.pinecone.Index(self.index_name)
-
-    def get_index_stats(self) -> Dict[str, Any]:
-        return self.index.describe_index_stats()
-
-    def get_index(self):
-        return self.index
 
 
 class DocumentProcessor:
@@ -89,11 +61,11 @@ class DocumentProcessor:
         md_text = pymupdf4llm.to_markdown(file_path, pages=pages_to_scrape)
         return md_text
 
-    def _markdown_to_chunks(self, md_text: str) -> List[Dict[str, Any]]:
+    def _markdown_to_chunks(self, md_text: str, source_file: str) -> List[Dict[str, Any]]:
         splitter = MarkdownTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
         documents = splitter.create_documents([md_text])
 
-        return [{"content": doc.page_content, "metadata": doc.metadata} for doc in documents]
+        return [{"content": doc.page_content, "metadata": {"source": source_file}} for doc in documents]
 
     def _generate_chunks(self) -> List[Dict[str, Any]]:
         chunks = []
@@ -102,7 +74,7 @@ class DocumentProcessor:
             not_needed_pages = self.no_needed_pages[file_name]
 
             md_text = self._pdf_to_markdown(file_path, not_needed_pages)
-            file_chunks = self._markdown_to_chunks(md_text)
+            file_chunks = self._markdown_to_chunks(md_text, file_name)
 
             chunks.extend(file_chunks)
 
@@ -193,29 +165,59 @@ def get_chunks_from_docs():
 
     return doc_processor.get_chunks()
 
-def create_embeddings(chunks: List[Dict[str, Any]], embed_model, index, batch_size: int = 20) -> None:
-    for i in tqdm(range(0, len(chunks), batch_size)):
-        batch = chunks[i:i + batch_size]
-        ids = [str(uuid4()) for _ in batch]
-        embeddings = embed_model.embed_documents([chunk["content"] for chunk in batch])
-        metadata = [
-            {
-                TEXT_FIELD: chunk["content"],
-            } for chunk in batch
-        ]
-        index.upsert(vectors=zip(ids, embeddings, metadata))
- 
-    print("Successfully embedded chunks and upserted them into the index.")
+def create_or_load_vectorstore(embed_model, chunks: List[Dict[str, Any]] = None):
+    """Create a new vectorstore or load existing one from ChromaDB."""
+    
+    # Check if ChromaDB already exists and has data
+    if os.path.exists(CHROMA_DB_PATH):
+        try:
+            vectorstore = Chroma(
+                persist_directory=CHROMA_DB_PATH,
+                embedding_function=embed_model
+            )
+            # Check if vectorstore has any documents
+            if vectorstore._collection.count() > 0:
+                print(f"Loaded existing ChromaDB with {vectorstore._collection.count()} documents.")
+                return vectorstore
+        except Exception as e:
+            print(f"Error loading existing ChromaDB: {e}")
+    
+    # Create new vectorstore if none exists or if chunks are provided
+    if chunks:
+        print("Creating new ChromaDB vectorstore...")
+        texts = [chunk["content"] for chunk in chunks]
+        metadatas = [chunk["metadata"] for chunk in chunks]
+        
+        vectorstore = Chroma.from_texts(
+            texts=texts,
+            embedding=embed_model,
+            metadatas=metadatas,
+            persist_directory=CHROMA_DB_PATH
+        )
+        print(f"Successfully created ChromaDB with {len(texts)} documents.")
+        return vectorstore
+    else:
+        # Create empty vectorstore
+        vectorstore = Chroma(
+            persist_directory=CHROMA_DB_PATH,
+            embedding_function=embed_model
+        )
+        return vectorstore
 
 
 if __name__ == "__main__":
     openai.api_key = OPENAI_API_KEY
 
-    database = Database(api_key=PINECONE_API_KEY, index_name=INDEX_NAME)
-    index = database.get_index()
-
     embed_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-    vectorstore = PineconeVectorStore(index=index, embedding=embed_model, text_key=TEXT_FIELD)
+    
+    # Try to load existing vectorstore first
+    vectorstore = create_or_load_vectorstore(embed_model)
+    
+    # If vectorstore is empty, process documents and create embeddings
+    if vectorstore._collection.count() == 0:
+        print("No existing data found. Processing documents...")
+        chunks = get_chunks_from_docs()
+        vectorstore = create_or_load_vectorstore(embed_model, chunks)
 
     chatbot = ChatBot(vectorstore=vectorstore, embed_model=embed_model)
 
@@ -227,4 +229,3 @@ if __name__ == "__main__":
             break
         else:
             chatbot.chat(user_input)
-
