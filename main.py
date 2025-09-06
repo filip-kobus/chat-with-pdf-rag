@@ -1,8 +1,7 @@
 import os
 from langchain_openai import OpenAI
-import json
 from typing import List, Dict, Any
-from dotenv import load_dotenv
+import config
 
 import pymupdf4llm
 from langchain.text_splitter import MarkdownTextSplitter
@@ -18,32 +17,7 @@ from tqdm.auto import tqdm
 from uuid import uuid4
 
 
-### Data
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-FILES_NAMES = [
-    "ask_1.pdf",
-    "ask_2.pdf",
-    "ask_3.pdf",
-    "ask_4.pdf",
-]
 
-NO_NEEDED_PAGES = {
-    "ask_1.pdf": [1, 2, 44, 45, 46, 47],
-    "ask_2.pdf": [1, 2, 15, 16, 17],
-    "ask_3.pdf": [1, 2, 24, 25, 26],
-    "ask_4.pdf": [1, 2, 3, 55, 56, 57, 58, 59, 60],
-}
-
-### Config
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
-CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "chroma_db")
-
-### Chunking parameters
-CHUNK_SIZE = 800
-CHUNK_OVERLAP = 80
 
 
 class DocumentProcessor:
@@ -62,7 +36,7 @@ class DocumentProcessor:
         return md_text
 
     def _markdown_to_chunks(self, md_text: str, source_file: str) -> List[Dict[str, Any]]:
-        splitter = MarkdownTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
+        splitter = MarkdownTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
         documents = splitter.create_documents([md_text])
 
         return [{"content": doc.page_content, "metadata": {"source": source_file}} for doc in documents]
@@ -122,7 +96,7 @@ class ChatBot:
 
         client = OpenAI()
         completion = client.chat.completions.create(
-            model=LLM_MODEL,
+            model=config.LLM_MODEL,
             messages=[self.system_message] + message,
         )
         response = {"role": "assistant", "content": completion.choices[0].message.content}
@@ -160,7 +134,7 @@ class ChatBot:
         print("-" * 20)
 
 def get_chunks_from_docs():
-    doc_processor = DocumentProcessor(DATA_DIR, FILES_NAMES, NO_NEEDED_PAGES)
+    doc_processor = DocumentProcessor(config.DATA_DIR, config.FILES_NAMES, config.NO_NEEDED_PAGES)
     print("Successfully processed documents and generated chunks.")
 
     return doc_processor.get_chunks()
@@ -169,10 +143,10 @@ def create_or_load_vectorstore(embed_model, chunks: List[Dict[str, Any]] = None)
     """Create a new vectorstore or load existing one from ChromaDB."""
     
     # Check if ChromaDB already exists and has data
-    if os.path.exists(CHROMA_DB_PATH):
+    if os.path.exists(config.CHROMA_DB_PATH):
         try:
             vectorstore = Chroma(
-                persist_directory=CHROMA_DB_PATH,
+                persist_directory=config.CHROMA_DB_PATH,
                 embedding_function=embed_model
             )
             # Check if vectorstore has any documents
@@ -192,23 +166,23 @@ def create_or_load_vectorstore(embed_model, chunks: List[Dict[str, Any]] = None)
             texts=texts,
             embedding=embed_model,
             metadatas=metadatas,
-            persist_directory=CHROMA_DB_PATH
+            persist_directory=config.CHROMA_DB_PATH
         )
         print(f"Successfully created ChromaDB with {len(texts)} documents.")
         return vectorstore
     else:
         # Create empty vectorstore
         vectorstore = Chroma(
-            persist_directory=CHROMA_DB_PATH,
+            persist_directory=config.CHROMA_DB_PATH,
             embedding_function=embed_model
         )
         return vectorstore
 
 
 if __name__ == "__main__":
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = config.OPENAI_API_KEY
 
-    embed_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embed_model = OpenAIEmbeddings(model=config.EMBEDDING_MODEL)
     
     # Try to load existing vectorstore first
     vectorstore = create_or_load_vectorstore(embed_model)
