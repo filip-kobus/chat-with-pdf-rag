@@ -6,6 +6,7 @@ from langchain_openai import OpenAIEmbeddings
 from chatbot import ChatBot
 from processing import DocumentProcessor
 from vectorstore import get_vectorstore, add_chunks_to_vectorstore
+from streamlit_local_storage import LocalStorage
     
 st.set_page_config(
     page_title="Chat with PDF",
@@ -14,8 +15,17 @@ st.set_page_config(
 
 st.title("Chat with PDF rag")
 
-openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+localS = LocalStorage()
+
+if "openai_api_key" not in st.session_state:
+    st.session_state.openai_api_key = localS.getItem("openai_api_key")
+
+openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password", value=st.session_state.openai_api_key or "")
+
 if openai_api_key:
+    if openai_api_key != st.session_state.openai_api_key:
+        localS.setItem("openai_api_key", openai_api_key)
+        st.session_state.openai_api_key = openai_api_key
     openai.api_key = openai_api_key
 else:
     st.warning("Please enter your OpenAI API key to proceed.")

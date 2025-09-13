@@ -14,6 +14,7 @@ class ChatBot:
     def augment_prompt(self, query: str) -> str:
         context = self.vectorstore.similarity_search(query, k=3)
         context = "\n".join([doc.page_content for doc in context])
+        print("AUGMENTED PROMPT:", AUGMENTED_PROMPT.format(query=query, context=context))
         return AUGMENTED_PROMPT.format(query=query, context=context)
 
     def chat(self, query: str) -> str:
