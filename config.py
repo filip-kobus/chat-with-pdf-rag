@@ -15,12 +15,6 @@ LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
 
 # Data configuration
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-FILES_NAMES = [
-    "ask_1.pdf",
-    "ask_2.pdf",
-    "ask_3.pdf",
-    "ask_4.pdf",
-]
 
 NO_NEEDED_PAGES = {
     "ask_1.pdf": [1, 2, 44, 45, 46, 47],
