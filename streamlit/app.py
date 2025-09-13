@@ -26,6 +26,11 @@ if openai_api_key:
     if openai_api_key != st.session_state.openai_api_key:
         localS.setItem("openai_api_key", openai_api_key)
         st.session_state.openai_api_key = openai_api_key
+    
+    if not openai_api_key.startswith("sk-"):
+        st.sidebar.error("Invalid API key format. API key should start with 'sk-'")
+        st.stop()
+    
     openai.api_key = openai_api_key
 else:
     st.warning("Please enter your OpenAI API key to proceed.")
@@ -56,7 +61,10 @@ if uploaded_files:
                 f.write(uploaded_file.getbuffer())
             file_paths.append(file_path)
 
-        embed_model = OpenAIEmbeddings(model=config.EMBEDDING_MODEL)
+        embed_model = OpenAIEmbeddings(
+            model=config.EMBEDDING_MODEL,
+            openai_api_key=openai_api_key
+        )
         vectorstore = get_vectorstore(embed_model)
         
         processed_files = [metadata['source'] for metadata in vectorstore.get()['metadatas']]
@@ -74,7 +82,7 @@ if uploaded_files:
         else:
             st.sidebar.info("All documents are already processed.")
 
-    st.session_state.chatbot = ChatBot(vectorstore=vectorstore)
+    st.session_state.chatbot = ChatBot(vectorstore=vectorstore, openai_api_key=openai_api_key)
 
 chat_container = st.container()
 

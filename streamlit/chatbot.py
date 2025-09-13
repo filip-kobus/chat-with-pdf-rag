@@ -1,13 +1,17 @@
 import config
 from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
 from prompts import SYSTEM_MESSAGE, AUGMENTED_PROMPT
 
 
 class ChatBot:
-    def __init__(self, vectorstore):
+    def __init__(self, vectorstore, openai_api_key):
         self.vectorstore = vectorstore
+        provider = OpenAIProvider(api_key=openai_api_key)
+        model = OpenAIChatModel(config.LLM_MODEL, provider=provider)
         self.agent = Agent(
-            config.LLM_MODEL,
+            model,
             instructions=SYSTEM_MESSAGE["content"],
         )
 
