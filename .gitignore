@@ -1,3 +1,7 @@
 .env
 data/*
 !data/mock.pdf
+.venv/
+data/
+chroma_db/
+__pycache__/
