@@ -1,8 +1,0 @@
-langchain-openai==0.1.25
-langchain==0.2.16
-langchain-chroma==0.1.4
-chromadb==0.5.5
-openai==1.45.0
-python-dotenv==1.0.1
-pymupdf4llm==0.0.12
-tqdm==4.66.5
