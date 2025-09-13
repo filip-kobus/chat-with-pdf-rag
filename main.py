@@ -7,7 +7,7 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 import openai
 from pydantic_ai import Agent
-from prompts import SYSTEM_MESSAGE, AUGMENTED_PROMPT
+from streamlit.prompts import SYSTEM_MESSAGE, AUGMENTED_PROMPT
 
 
 class DocumentProcessor:
