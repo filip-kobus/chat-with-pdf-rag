@@ -1,6 +1,6 @@
-# 📄 Chat with PDF RAG
+# 📄 PDF Q&A with RAG
 
-An application that enables conversations with PDF documents using RAG (Retrieval Augmented Generation) technology.
+An application that enables asking questions about PDF documents using RAG (Retrieval Augmented Generation) technology.
 
 ![alt text](README/main-view.png)
 
