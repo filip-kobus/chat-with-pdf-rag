@@ -16,7 +16,7 @@ def main():
         page_icon="📄", 
         initial_sidebar_state="expanded"
     )
-    st.title("Chat with PDF rag")
+    st.title("Chat with PDF RAG 🤖📄")
 
     session_service = SessionService()
     auth_service = AuthService()
