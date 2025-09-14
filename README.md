@@ -1,109 +1,82 @@
 # Chat with PDF RAG Application
 
-Aplikacja umożliwiająca prowadzenie konwersacji z dokumentami PDF przy użyciu technologii RAG (Retrieval Augmented Generation).
+An application that enables conversations with PDF documents using RAG (Retrieval Augmented Generation) technology.
 
-## Tryby działania
+![alt text](README/main-view.png)
 
-Aplikacja obsługuje dwa tryby działania, wybierane na podstawie zmiennej środowiskowej `APP_ENV`:
+## Features
 
-### Development Mode (`APP_ENV=development`)
-- Menedżer sesji oparty na pliku JSON
-- ChromaDB zapisuje dane w lokalnym systemie plików
-- Brak zależności na zewnętrzne serwisy
+- **PDF Document Upload** - Upload and index PDF documents for questioning
+- **Chat with Documents** - Ask questions and get answers based on document content
+- **Session Management** - Maintains conversation history across sessions
+- **Development and Production Modes** - Different configurations for development and production environments
+- **Responsive Interface** - Adapts to different screen sizes
 
-### Production Mode (`APP_ENV=production`)
-- Redis jako backend dla menedżera sesji
-- ChromaDB jako zewnętrzny serwis
-- Wszystkie serwisy działają w kontenerach Docker
+## Quick Start
 
-## Uruchomienie
+### Development Mode
 
-### Tryb Development
-
-#### Lokalnie (Streamlit)
 ```bash
-# Ustaw zmienną środowiskową
-$env:APP_ENV="development"
-
-# Zainstaluj zależności
+# Install dependencies
 uv sync
 
-# Uruchom aplikację Streamlit
-uv run streamlit run streamlit/app.py
+# Run the Streamlit application
+streamlit run src/app.py
 ```
 
-#### Lokalnie (Konsola)
-```bash
-# Ustaw zmienną środowiskową
-$env:APP_ENV="development"
+The application will be available at: http://localhost:8501
 
-# Uruchom skrypt konsolowy
-uv run python main.py
-```
-
-#### Docker (development)
-```bash
-# Użyj pliku docker-compose dla trybu development
-docker-compose -f docker-compose.dev.yml up --build
-
-# Aplikacja będzie dostępna na: http://localhost:8501
-```
-
-### Tryb Production
+### Production Mode
 
 ```bash
-# Uruchom wszystkie serwisy (Redis, ChromaDB, Aplikacja)
+# Run all services (Redis, ChromaDB, Application)
 docker-compose up --build
-
-# Aplikacja będzie dostępna na: http://localhost:8501
+# or using podman
+podman compose up --build
 ```
 
-## Porty
 
-- **8501** - Aplikacja Streamlit
-- **6379** - Redis (tylko w trybie production)
-- **8000** - ChromaDB (tylko w trybie production)
+## How It Works
 
-## Struktura projektu
+### Development Mode
+- JSON file-based session manager
+- Local ChromaDB storage
+- No external service dependencies
 
-- `factories.py` - Fabryki dla różnych implementacji serwisów
-- `config.py` - Konfiguracja globalna
-- `main.py` - Skrypt konsolowy
-- `streamlit/` - Aplikacja webowa Streamlit
-- `docker-compose.yml` - Konfiguracja production
-- `docker-compose.dev.yml` - Konfiguracja development
-- `Dockerfile` - Kontener dla skryptu konsolowego
-- `Dockerfile.streamlit` - Kontener dla aplikacji Streamlit
+### Production Mode
+- Redis backend for session management
+- ChromaDB as external service
+- All services run in Docker containers
 
-## Zmienne środowiskowe
+## Ports
 
-### Podstawowe
-- `APP_ENV` - tryb działania (`development` / `production`)
-- `OPENAI_API_KEY` - klucz API OpenAI
-- `EMBEDDING_MODEL` - model embeddings (domyślnie: `text-embedding-ada-002`)
-- `LLM_MODEL` - model LLM (domyślnie: `gpt-3.5-turbo`)
+- **8501** - Streamlit Application
+- **6379** - Redis (production mode only)
+- **8000** - ChromaDB (production mode only)
 
-### Redis (production)
-- `REDIS_HOST` - host Redis (domyślnie: `redis`)
-- `REDIS_PORT` - port Redis (domyślnie: `6379`)
-- `REDIS_DB` - baza danych Redis (domyślnie: `0`)
+## Technologies
 
-### ChromaDB (production)
-- `CHROMADB_HOST` - host ChromaDB (domyślnie: `chromadb`)
-- `CHROMADB_PORT` - port ChromaDB (domyślnie: `8000`)
+- **Python 3.12+** - Programming language
+- **Streamlit** - Web application framework
+- **LangChain** - Framework for working with language models
+- **ChromaDB** - Vector database
+- **Redis** - Session storage and caching (production)
+- **OpenAI API** - Language models and embeddings
+- **UV** - Python dependency management
+- **Docker/podman** - Containerization (production)
 
-### Development
-- `SESSION_MANAGER_JSON` - ścieżka do pliku JSON z sesjami
-- `CHROMA_DB_PATH` - ścieżka do lokalnej bazy ChromaDB
+## API Configuration
 
-## Testowanie
+The application requires an OpenAI API key which can be provided either:
+- Through the web interface (recommended for development)
+- As an environment variable `OPENAI_API_KEY`
+
+## Testing
 
 ```bash
-# Test fabryki w trybie development
-$env:APP_ENV="development"
-uv run python -c "from factories import ServiceFactory; print('Development mode OK')"
+# Test development mode
+streamlit run src/app.py
 
-# Test fabryki w trybie production (wymaga uruchomienia Redis i ChromaDB)
-$env:APP_ENV="production"
-uv run python -c "from factories import ServiceFactory; print('Production mode OK')"
+# Test production mode (requires Docker)
+docker-compose up --build
 ```
