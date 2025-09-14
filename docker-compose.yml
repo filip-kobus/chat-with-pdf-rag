@@ -1,0 +1,59 @@
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: chat-pdf-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chat-pdf-chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    environment:
+      - CHROMA_HOST=0.0.0.0
+      - CHROMA_PORT=8000
+    volumes:
+      - chromadb_data:/chroma/chroma
+
+  chat-with-pdf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat-with-pdf-rag
+    environment:
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-ada-002}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4-turbo}
+      - APP_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      - redis
+      - chromadb
+
+volumes:
+  redis_data:
+  chromadb_data:
