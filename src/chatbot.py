@@ -31,7 +31,7 @@ class ChatBot:
         augmented_query = self.augment_prompt(query)
         augmented_response = self.agent.run_sync(augmented_query)
         return augmented_response.output
-    
+
     async def chat_stream(self, query: str):
         augmented_query = self.augment_prompt(query)
         async with self.agent.run_stream(augmented_query) as result:

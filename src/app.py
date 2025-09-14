@@ -10,11 +10,10 @@ from utils.state_manager import StateManager
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def main():
     st.set_page_config(
-        page_title="Chat with PDF", 
-        page_icon="📄", 
-        initial_sidebar_state="expanded"
+        page_title="Chat with PDF", page_icon="📄", initial_sidebar_state="expanded"
     )
     st.title("Chat with PDF RAG 🤖📄")
 
@@ -22,7 +21,7 @@ def main():
     auth_service = AuthService()
     state_manager = StateManager()
     file_service = FileService(session_service)
-    
+
     sidebar_component = SidebarComponent(session_service, file_service)
     chat_component = ChatComponent(state_manager)
 
@@ -30,7 +29,7 @@ def main():
     auth_service.initialize_api_key()
 
     openai_api_key = auth_service.render_api_key_input()
-    
+
     if not auth_service.validate_and_set_api_key(openai_api_key):
         st.stop()
 
@@ -38,7 +37,9 @@ def main():
     uploaded_files = sidebar_component.render_file_uploader()
 
     if uploaded_files:
-        files_processed = file_service.process_uploaded_files(uploaded_files, openai_api_key)
+        files_processed = file_service.process_uploaded_files(
+            uploaded_files, openai_api_key
+        )
         if files_processed:
             chatbot = file_service.create_chatbot(openai_api_key)
             state_manager.set_chatbot(chatbot)
@@ -48,9 +49,10 @@ def main():
         state_manager.set_chatbot(chatbot)
 
     prompt = chat_component.render_chat_interface()
-    
+
     if prompt:
         chat_component.display_assistant_response(state_manager.get_chatbot(), prompt)
+
 
 if __name__ == "__main__":
     main()

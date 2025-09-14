@@ -7,12 +7,12 @@ class ChatComponent:
 
     def render_chat_interface(self):
         chat_container = st.container()
-        
+
         with chat_container:
             for message in self.state_manager.get_messages():
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
-        
+
         return self._handle_chat_input()
 
     def _handle_chat_input(self):
@@ -25,6 +25,7 @@ class ChatComponent:
 
     def display_assistant_response(self, chatbot, prompt):
         if chatbot:
+
             async def response_generator():
                 async for text in chatbot.chat_stream(prompt):
                     yield text

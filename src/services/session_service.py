@@ -14,7 +14,9 @@ class SessionService:
     def initialize_session(self):
         if "session_id" not in st.session_state:
             stored_session_id = self.local_storage.getItem("session_id")
-            if stored_session_id and self.session_manager.is_valid_session(stored_session_id):
+            if stored_session_id and self.session_manager.is_valid_session(
+                stored_session_id
+            ):
                 st.session_state.session_id = stored_session_id
             else:
                 new_session_id = self.session_manager.generate_session_id()

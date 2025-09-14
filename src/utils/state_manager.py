@@ -8,7 +8,7 @@ class StateManager:
     def _initialize_state(self):
         if "chatbot" not in st.session_state:
             st.session_state.chatbot = None
-        
+
         if "messages" not in st.session_state:
             st.session_state.messages = []
 

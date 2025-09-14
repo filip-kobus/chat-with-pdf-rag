@@ -29,12 +29,12 @@ class FileService:
             with st.spinner("Processing documents..."):
                 self._save_uploaded_files(files_to_process)
                 self._process_documents(files_to_process, openai_api_key)
-            
+
         return len(files_to_process) > 0
 
     def create_chatbot(self, openai_api_key):
         current_session_files = self.session_service.get_session_files()
-        
+
         if current_session_files:
             embed_model = OpenAIEmbeddings(
                 model=config.EMBEDDING_MODEL, openai_api_key=openai_api_key

@@ -11,7 +11,7 @@ class SidebarComponent:
 
     def render_file_list(self, openai_api_key):
         current_session_files = self.session_service.get_session_files()
-        
+
         if current_session_files:
             st.sidebar.subheader("Your Files")
             for file_name in current_session_files:
@@ -40,7 +40,7 @@ class SidebarComponent:
                 f"Maximum {max_files} files per session reached. Delete a file to upload new ones."
             )
             uploaded_files = None
-        
+
         return uploaded_files
 
     def _handle_file_deletion(self, file_name, openai_api_key):

@@ -9,13 +9,15 @@ class AuthService:
 
     def initialize_api_key(self):
         if "openai_api_key" not in st.session_state:
-            st.session_state.openai_api_key = self.local_storage.getItem("openai_api_key")
+            st.session_state.openai_api_key = self.local_storage.getItem(
+                "openai_api_key"
+            )
 
     def render_api_key_input(self):
         openai_api_key = st.sidebar.text_input(
-            "OpenAI API Key", 
-            type="password", 
-            value=st.session_state.openai_api_key or ""
+            "OpenAI API Key",
+            type="password",
+            value=st.session_state.openai_api_key or "",
         )
         return openai_api_key
 
@@ -26,7 +28,9 @@ class AuthService:
                 st.session_state.openai_api_key = api_key
 
             if not api_key.startswith("sk-"):
-                st.sidebar.error("Invalid API key format. API key should start with 'sk-'")
+                st.sidebar.error(
+                    "Invalid API key format. API key should start with 'sk-'"
+                )
                 return False
 
             openai.api_key = api_key
