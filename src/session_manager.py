@@ -13,6 +13,7 @@ def get_session_manager():
     else:
         return LocalSessionManager()
 
+
 class LocalSessionManager:
     def __init__(self):
         self.json_file_path = config.SESSIONS_JSON
@@ -23,12 +24,12 @@ class LocalSessionManager:
     def _load_data(self) -> Dict:
         if os.path.exists(self.json_file_path):
             try:
-                with open(self.json_file_path, 'r') as f:
+                with open(self.json_file_path, "r") as f:
                     data = json.load(f)
-                    if 'session_queue' not in data:
-                        data['session_queue'] = []
-                    if 'session_files' not in data:
-                        data['session_files'] = {}
+                    if "session_queue" not in data:
+                        data["session_queue"] = []
+                    if "session_files" not in data:
+                        data["session_files"] = {}
                     return data
             except (json.JSONDecodeError, KeyError):
                 pass
@@ -40,7 +41,7 @@ class LocalSessionManager:
             self.data["session_queue"] = []
         if "session_files" not in self.data:
             self.data["session_files"] = {}
-        with open(self.json_file_path, 'w') as f:
+        with open(self.json_file_path, "w") as f:
             json.dump(self.data, f, indent=2)
 
     def generate_session_id(self) -> str:
@@ -92,13 +93,14 @@ class LocalSessionManager:
             del self.data["session_files"][session_id]
         self._save_data()
 
+
 class RedisSessionManager:
     def __init__(self):
         self.redis_client = redis.Redis(
             host=config.REDIS_HOST,
             port=config.REDIS_PORT,
             db=config.REDIS_DB,
-            decode_responses=True
+            decode_responses=True,
         )
         self.max_sessions = config.MAX_SESSIONS
         self.max_files_per_session = config.MAX_FILES_PER_SESSION

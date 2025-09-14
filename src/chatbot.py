@@ -18,14 +18,12 @@ class ChatBot:
 
     def augment_prompt(self, query: str) -> str:
         context = self.vectorstore.similarity_search(
-            query, 
-            k=3, 
-            filter={"session_id": self.session_id}
+            query, k=3, filter={"session_id": self.session_id}
         )
 
         if not context:
             return query
-        
+
         context = "\n".join([doc.page_content for doc in context])
         return AUGMENTED_PROMPT.format(query=query, context=context)
 
