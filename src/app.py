@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 import streamlit as st
 import openai
 import config
@@ -189,10 +190,12 @@ if prompt := st.chat_input("Ask something about your document..."):
         st.markdown(prompt)
 
     if st.session_state.chatbot:
-        with st.spinner("Thinking..."):
-            response = st.session_state.chatbot.chat(prompt)
-            with st.chat_message("assistant"):
-                st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+        async def response_generator():
+            async for text in st.session_state.chatbot.chat_stream(prompt):
+                yield text
+
+        with st.chat_message("assistant"):
+            response = st.write_stream(response_generator())
+        st.session_state.messages.append({"role": "assistant", "content": response})
     else:
         st.warning("Please upload and process documents before asking questions.")
