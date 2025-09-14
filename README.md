@@ -71,12 +71,8 @@ The application requires an OpenAI API key which can be provided either:
 - Through the web interface (recommended for development)
 - As an environment variable `OPENAI_API_KEY`
 
-## Testing
+## Plans
 
-```bash
-# Test development mode
-streamlit run src/app.py
-
-# Test production mode (requires Docker)
-docker-compose up --build
-```
+- add graph rag
+- add persistent chat histories
+- improve authentication method
