@@ -184,10 +184,9 @@ with chat_container:
             st.markdown(message["content"])
 
 if prompt := st.chat_input("Ask something about your document..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
     with st.chat_message("user"):
         st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
     if st.session_state.chatbot:
         async def response_generator():
