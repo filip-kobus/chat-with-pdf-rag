@@ -13,14 +13,13 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync
 
-COPY . .
+COPY src/ ./src/
 
-RUN mkdir -p data chroma_db
+RUN mkdir -p data
 
-EXPOSE 8000
 EXPOSE 8501
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-CMD ["streamlit", "run", "src/app.py"]
+CMD ["uv", "run", "streamlit", "run", "src/app.py", "--server.address", "0.0.0.0"]

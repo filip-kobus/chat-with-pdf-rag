@@ -7,7 +7,7 @@ load_dotenv()
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4-turbo")
 
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(__file__).parent.parent / "data"
 
 CHROMA_DB_PATH = DATA_DIR / "chroma_db"
 SESSIONS_JSON = DATA_DIR / "sessions.json"

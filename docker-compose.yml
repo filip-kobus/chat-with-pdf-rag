@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   app-network:
     driver: bridge
@@ -34,7 +32,7 @@ services:
   chat-with-pdf:
     build:
       context: .
-      dockerfile: Dockerfile.streamlit
+      dockerfile: Dockerfile
     container_name: chat-with-pdf-rag
     environment:
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-ada-002}
@@ -46,8 +44,7 @@ services:
       - CHROMADB_HOST=chromadb
       - CHROMADB_PORT=8000
     volumes:
-      - ./data:/app/streamlit/data
-      - ./.env:/app/.env:ro
+      - ./data:/app/data
     ports:
       - "8501:8501"
     restart: unless-stopped
