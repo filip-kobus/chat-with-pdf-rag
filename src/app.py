@@ -11,7 +11,11 @@ from utils.state_manager import StateManager
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def main():
-    st.set_page_config(page_title="Chat with PDF", initial_sidebar_state="expanded")
+    st.set_page_config(
+        page_title="Chat with PDF", 
+        page_icon="📄", 
+        initial_sidebar_state="expanded"
+    )
     st.title("Chat with PDF rag")
 
     session_service = SessionService()
